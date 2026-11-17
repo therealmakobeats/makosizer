@@ -3,9 +3,10 @@
 bool PresetManager::savePreset(const juce::File& file) const
 {
     const auto xml = parameters.copyState().createXml();
+    if (xml == nullptr)
+        return false;
 
-    return xml != nullptr
-        && xml->writeTo(file);
+    return xml->writeTo(file);
 }
 
 bool PresetManager::loadPreset(const juce::File& file)
@@ -14,19 +15,13 @@ bool PresetManager::loadPreset(const juce::File& file)
         return false;
 
     const auto xml = juce::XmlDocument::parse(file);
-
     if (xml == nullptr)
         return false;
 
     const auto tree = juce::ValueTree::fromXml(*xml);
-
-    if (!tree.isValid())
-        return false;
-
-    if (!tree.hasType(parameters.state.getType()))
+    if (!tree.isValid() || !tree.hasType(parameters.state.getType()))
         return false;
 
     parameters.replaceState(tree);
-
     return true;
 }
