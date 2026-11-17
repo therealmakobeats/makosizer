@@ -1,19 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-
-# CMake 3.29+ introduced new policies that JUCE 8.0.2 does not yet handle correctly
-# when a newer toolchain is installed in GitHub Actions. Guard the newer policies while
-# keeping compatibility with the older JUCE CMake scripts used by this project.
-if(POLICY CMP0135)
-    cmake_policy(SET CMP0135 NEW)
-endif()
-if(POLICY CMP0148)
-    cmake_policy(SET CMP0148 NEW)
-endif()
-if(POLICY CMP0175)
-    cmake_policy(SET CMP0175 NEW)
-endif()
-
-project(MAKOSIZER VERSION 1.0.0 LANGUAGES C CXX)
+project(MAKOSIZER VERSION 2.0.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -53,26 +39,11 @@ juce_add_plugin(Makosizer
 
 target_sources(Makosizer PRIVATE
     Source/PluginProcessor.cpp
-    Source/PluginEditor.cpp
-    Source/LookAndFeel.cpp
-    Source/LedMeter.cpp
-    Source/DestroyKnob.cpp
-    Source/PresetManager.cpp
-    Components/SharkLogo.cpp
-    DSP/Saturator.cpp
-    DSP/VinylSim.cpp
-    DSP/BitCrusher.cpp
-    DSP/WowFlutter.cpp
-    DSP/NoiseGenerator.cpp
-    DSP/StereoWidth.cpp
-    DSP/SoftClipper.cpp
-    DSP/Limiter.cpp)
+    Source/PluginEditor.cpp)
 
 target_include_directories(Makosizer PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/Source
-    ${CMAKE_CURRENT_SOURCE_DIR}/DSP
-    ${CMAKE_CURRENT_SOURCE_DIR}/Components)
+    ${CMAKE_CURRENT_SOURCE_DIR}/Source)
 
 target_compile_definitions(Makosizer PRIVATE
     JUCE_WEB_BROWSER=0
