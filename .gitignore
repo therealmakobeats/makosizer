@@ -1,0 +1,10 @@
+# Makosizer
+
+*.vst3
+*.component
+*.pkg
+*.exe
+*.dmg
+*.user
+build/
+.CMakeUserPresets.json
