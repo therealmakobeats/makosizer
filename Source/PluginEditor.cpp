@@ -50,7 +50,7 @@ MakosizerAudioProcessorEditor::MakosizerAudioProcessorEditor(MakosizerAudioProce
 {
     setSize(1536, 1024);
     setResizable(true, true);
-    setResize limits(1000, 667, 1920, 1280);
+    setResizeLimits(1000, 667, 1920, 1280);
 
     for (size_t i = 0; i < sliders.size(); ++i)
     {

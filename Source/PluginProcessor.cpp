@@ -123,12 +123,12 @@ void MakosizerAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
     const float lpfHz = getParameter("LPF");
     const float sr = static_cast<float>(currentSampleRate);
     const float safeLpf = juce::jlimit(20.0f, sr * 0.45f, lpfHz);
-    *hpfL.state = *juce::dsp::IIR::Coefficients<float>::makeHighPass(sr, hpfHz, 0.7071f);
-    *hpfR.state = *juce::dsp::IIR::Coefficients<float>::makeHighPass(sr, hpfHz, 0.7071f);
-    *lpfL.state = *juce::dsp::IIR::Coefficients<float>::makeLowPass(sr, safeLpf, 0.7071f);
-    *lpfR.state = *juce::dsp::IIR::Coefficients<float>::makeLowPass(sr, safeLpf, 0.7071f);
-    *noiseL.state = *juce::dsp::IIR::Coefficients<float>::makeBandPass(sr, 1500.0f, 0.9f);
-    *noiseR.state = *juce::dsp::IIR::Coefficients<float>::makeBandPass(sr, 1500.0f, 0.9f);
+    hpfL.coefficients = juce::dsp::IIR::Coefficients<float>::makeHighPass(sr, hpfHz, 0.7071f);
+    hpfR.coefficients = juce::dsp::IIR::Coefficients<float>::makeHighPass(sr, hpfHz, 0.7071f);
+    lpfL.coefficients = juce::dsp::IIR::Coefficients<float>::makeLowPass(sr, safeLpf, 0.7071f);
+    lpfR.coefficients = juce::dsp::IIR::Coefficients<float>::makeLowPass(sr, safeLpf, 0.7071f);
+    noiseL.coefficients = juce::dsp::IIR::Coefficients<float>::makeBandPass(sr, 1500.0f, 0.9f);
+    noiseR.coefficients = juce::dsp::IIR::Coefficients<float>::makeBandPass(sr, 1500.0f, 0.9f);
 
     const float vinyl = getParameter("VinylSim") * 0.01f;
     const float destroy = getParameter("Destroy") * 0.01f;
@@ -210,7 +210,8 @@ void MakosizerAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
         const float detector = (std::abs(left) + std::abs(right)) * 0.5f;
         const float attack = std::exp(-1.0f / (0.004f * sr));
         const float release = std::exp(-1.0f / (0.25f * sr));
-        envelope = (detector > envelope ? attack : release) * envelope + (1.0f - (detector > envelope ? attack : release)) * detector;
+        const float envelopeCoefficient = detector > envelope ? attack : release;
+        envelope = envelopeCoefficient * envelope + (1.0f - envelopeCoefficient) * detector;
         const float threshold = juce::Decibels::decibelsToGain(-comp * 34.0f);
         float compGain = 1.0f;
         if (comp > 0.02f && envelope > threshold && envelope > 1.0e-6f)
