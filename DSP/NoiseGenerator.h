@@ -7,11 +7,13 @@ class NoiseGenerator
 public:
     void prepare(double sampleRate)
     {
-        fs = static_cast<float>(sampleRate > 0.0 ? sampleRate : 44100.0);
-        random = juce::Random(0x00C0FFEE);
+        juce::ignoreUnused(sampleRate);
+        reset();
     }
 
-    void reset() { random = juce::Random(0x00C0FFEE); }
+    // JUCE Random does not expose a public reseed operation.
+    void reset() noexcept {}
+
     void setVinylLevel(float value) { vinyl = juce::jlimit(0.0f, 1.0f, value); }
     void setDust(float value) { dust = juce::jlimit(0.0f, 1.0f, value); }
 
@@ -29,8 +31,7 @@ public:
     }
 
 private:
-    float fs = 44100.0f;
     float vinyl = 0.0f;
     float dust = 0.0f;
-    juce::Random random { 0x00C0FFEE };
+    juce::Random random;
 };

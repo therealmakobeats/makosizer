@@ -12,7 +12,12 @@ public:
         reset();
     }
 
-    void reset() { wowPhase = 0.0f; flutterPhase = 0.0f; }
+    void reset() noexcept
+    {
+        wowPhase = 0.0f;
+        flutterPhase = 0.0f;
+    }
+
     void setWow(float value) { wow = juce::jlimit(0.1f, 2.0f, value); }
     void setFlutter(float value) { flutter = juce::jlimit(4.0f, 20.0f, value); }
 
