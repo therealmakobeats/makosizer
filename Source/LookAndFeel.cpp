@@ -1,5 +1,7 @@
 #include "LookAndFeel.h"
 
+#include <cmath>
+
 MakosizerLookAndFeel::MakosizerLookAndFeel()
 {
     setColour(juce::Slider::thumbColourId, juce::Colour(0xffff514c));
@@ -20,7 +22,6 @@ void MakosizerLookAndFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int
     const auto centre = bounds.getCentre().withY(bounds.getY() + size * 0.48f);
     const float angle = startAngle + sliderPos * (endAngle - startAngle);
 
-    // Metal shadow, concentric brushed rings and dark inset face.
     g.setColour(juce::Colour(0xff050606));
     g.fillEllipse(centre.x - radius - 5.0f, centre.y - radius - 2.0f,
                   (radius + 5.0f) * 2.0f, (radius + 5.0f) * 2.0f);
@@ -38,7 +39,6 @@ void MakosizerLookAndFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int
     g.drawEllipse(centre.x - radius + 5.0f, centre.y - radius + 5.0f,
                   (radius - 5.0f) * 2.0f, (radius - 5.0f) * 2.0f, 0.8f);
 
-    // Tactile index marks around the dial.
     for (int tick = 0; tick <= 20; ++tick)
     {
         const float a = startAngle + (endAngle - startAngle) * static_cast<float>(tick) / 20.0f;
@@ -58,7 +58,6 @@ void MakosizerLookAndFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int
                                                 juce::PathStrokeType::curved,
                                                 juce::PathStrokeType::rounded));
 
-    // Red pointer with a tiny highlight, matching the reference's analog dials.
     juce::Path pointer;
     pointer.addRoundedRectangle(-1.6f, -radius + 9.0f, 3.2f, radius * 0.58f, 1.5f);
     g.setColour(juce::Colour(0xffa51e1b));

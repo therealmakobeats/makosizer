@@ -49,7 +49,18 @@ bool MakosizerAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts)
 
 void MakosizerAudioProcessor::processBlockBypassed(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
-    juce::ignoreUnused(buffer, midiMessages);
+    juce::ignoreUnused(midiMessages);
+    const int channels = juce::jmin(buffer.getNumChannels(), getTotalNumOutputChannels());
+    float peakLeft = 0.0f;
+    float peakRight = 0.0f;
+    for (int sample = 0; sample < buffer.getNumSamples(); ++sample)
+    {
+        peakLeft = juce::jmax(peakLeft, std::abs(buffer.getSample(0, sample)));
+        if (channels > 1)
+            peakRight = juce::jmax(peakRight, std::abs(buffer.getSample(1, sample)));
+    }
+    meterLeftDb.store(juce::Decibels::gainToDecibels(peakLeft, -60.0f), std::memory_order_relaxed);
+    meterRightDb.store(juce::Decibels::gainToDecibels(channels > 1 ? peakRight : peakLeft, -60.0f), std::memory_order_relaxed);
 }
 
 void MakosizerAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
@@ -73,6 +84,8 @@ void MakosizerAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
     const float saturation = 1.0f + 12.0f * drive + 10.0f * destroy;
     const float wet = juce::jlimit(0.0f, 1.0f, mix);
     const float finalGain = outputGain * (1.0f + comp * 0.2f);
+    float peakLeft = 0.0f;
+    float peakRight = 0.0f;
 
     for (int sample = 0; sample < samples; ++sample)
     {
@@ -89,15 +102,21 @@ void MakosizerAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
             const float side = 0.5f * (left - right) * width;
             left = mid + side;
             right = mid - side;
-            buffer.setSample(1, sample, juce::jlimit(-1.0f, 1.0f, (rightDry * (1.0f - wet) + right * wet) * finalGain));
+            const float outRight = juce::jlimit(-1.0f, 1.0f, (rightDry * (1.0f - wet) + right * wet) * finalGain);
+            buffer.setSample(1, sample, outRight);
+            peakRight = juce::jmax(peakRight, std::abs(outRight));
         }
 
-        buffer.setSample(0, sample, juce::jlimit(-1.0f, 1.0f, (leftDry * (1.0f - wet) + left * wet) * finalGain));
+        const float outLeft = juce::jlimit(-1.0f, 1.0f, (leftDry * (1.0f - wet) + left * wet) * finalGain);
+        buffer.setSample(0, sample, outLeft);
+        peakLeft = juce::jmax(peakLeft, std::abs(outLeft));
     }
 
     for (int channel = channels; channel < buffer.getNumChannels(); ++channel)
         buffer.clear(channel, 0, samples);
 
+    meterLeftDb.store(juce::Decibels::gainToDecibels(peakLeft, -60.0f), std::memory_order_relaxed);
+    meterRightDb.store(juce::Decibels::gainToDecibels(channels > 1 ? peakRight : peakLeft, -60.0f), std::memory_order_relaxed);
     juce::ignoreUnused(currentSampleRate);
 }
 

@@ -2,6 +2,8 @@
 
 #include <juce_audio_processors/juce_audio_processors.h>
 
+#include <atomic>
+
 class MakosizerAudioProcessor final : public juce::AudioProcessor
 {
 public:
@@ -33,6 +35,8 @@ public:
     void setStateInformation(const void* data, int sizeInBytes) override;
 
     juce::AudioProcessorValueTreeState apvts;
+    std::atomic<float> meterLeftDb { -60.0f };
+    std::atomic<float> meterRightDb { -60.0f };
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
 
 private:
