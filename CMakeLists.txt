@@ -1,5 +1,19 @@
 cmake_minimum_required(VERSION 3.22)
-project(MAKOSIZER VERSION 1.0.0 LANGUAGES CXX)
+
+# CMake 3.29+ introduced new policies that JUCE 8.0.2 does not yet handle correctly
+# when a newer toolchain is installed in GitHub Actions. Guard the newer policies while
+# keeping compatibility with the older JUCE CMake scripts used by this project.
+if(POLICY CMP0135)
+    cmake_policy(SET CMP0135 NEW)
+endif()
+if(POLICY CMP0148)
+    cmake_policy(SET CMP0148 NEW)
+endif()
+if(POLICY CMP0175)
+    cmake_policy(SET CMP0175 NEW)
+endif()
+
+project(MAKOSIZER VERSION 1.0.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
