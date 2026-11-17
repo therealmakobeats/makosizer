@@ -1,0 +1,65 @@
+name: Makosizer CI
+
+on:
+  push:
+    branches:
+      - main
+      - "copilot/**"
+    tags:
+      - "v*"
+
+  pull_request:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows-vst3:
+    name: Windows VST3
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake -S . -B build -A x64 -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build VST3
+        run: cmake --build build --config Release --target Makosizer_VST3
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Makosizer-Windows-VST3
+          path: build/Makosizer_artefacts/Release/VST3/Makosizer.vst3
+          if-no-files-found: error
+
+  macos-universal:
+    name: macOS Universal VST3 + AU
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure Universal Binary
+        run: |
+          cmake -S . -B build \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" \
+          -DCMAKE_OSX_DEPLOYMENT_TARGET=10.13
+
+      - name: Build VST3 and AU
+        run: |
+          cmake --build build --config Release \
+          --target Makosizer_VST3 Makosizer_AU
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Makosizer-macOS-Universal
+          path: |
+            build/Makosizer_artefacts/Release/VST3/Makosizer.vst3
+            build/Makosizer_artefacts/Release/AU/Makosizer.component
+          if-no-files-found: error
