@@ -46,20 +46,38 @@ jobs:
 
       - name: Configure Universal Binary
         run: |
+          set -euo pipefail
+          rm -rf build
           cmake -S . -B build \
-          -DCMAKE_BUILD_TYPE=Release \
-          -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" \
-          -DCMAKE_OSX_DEPLOYMENT_TARGET=10.13
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0
 
-      - name: Build VST3 and AU
+      - name: Build macOS VST3
+        run: cmake --build build --config Release --target Makosizer_VST3
+
+      - name: Build macOS AU
+        run: cmake --build build --config Release --target Makosizer_AU
+
+      - name: Verify and package macOS plugin bundles
         run: |
-          cmake --build build --config Release \
-          --target Makosizer_VST3 Makosizer_AU
+          set -euo pipefail
+          VST3="build/Makosizer_artefacts/Release/VST3/Makosizer.vst3"
+          AU="build/Makosizer_artefacts/Release/AU/Makosizer.component"
+          test -d "$VST3"
+          test -d "$AU"
+          mkdir -p package
+          ditto -c -k --sequesterRsrc --keepParent "$VST3" package/Makosizer-macOS-Universal.vst3.zip
+          ditto -c -k --sequesterRsrc --keepParent "$AU" package/Makosizer-macOS-Universal.component.zip
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Makosizer-macOS-Universal
-          path: |
-            build/Makosizer_artefacts/Release/VST3/Makosizer.vst3
-            build/Makosizer_artefacts/Release/AU/Makosizer.component
+          name: Makosizer-macOS-Universal-VST3
+          path: package/Makosizer-macOS-Universal.vst3.zip
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Makosizer-macOS-Universal-AU
+          path: package/Makosizer-macOS-Universal.component.zip
           if-no-files-found: error
